@@ -1,0 +1,183 @@
+<!doctype html>
+<!--
+Copyright 2017-2020 JellyWare Inc. All Rights Reserved.
+-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="BlueJelly">
+    <meta name="viewport" content="width=640, maximum-scale=1.0, user-scalable=yes">
+    <title>BlueJelly</title>
+    <link href="https://fonts.googleapis.com/css?family=Lato:100,300,400,700,900" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="style.css">
+    <script type="text/javascript" src="bluejelly.js"></script>
+  </head>
+
+<body>
+<div class="container">
+    <div class="title margin">
+        <p id="title">BlueJelly Sample</p>
+        <p id="subtitle">複数デバイスとの通信</p>
+    </div>
+
+    <div class="contents margin">
+        <button id="startNotifications" class="button">Start Notify</button>
+        <button id="stopNotifications" class="button">Stop Notify</button>
+        <hr>
+        <div id="device_name"> </div>
+        <div id="uuid_name"> </div>
+        <div id="data_text"> </div>
+        <div id="status"> </div>
+    </div>
+
+    <div class="contents margin">
+        <button id="saveDevice" class="button">Save Device</button>
+        <button id="stopNotifications2" class="button">Save Notify2</button>
+        <hr>
+        <div id="device_name2"> </div>
+        <div id="uuid_name2"> </div>
+        <div id="data_text2"> </div>
+        <div id="status2"> </div>
+    </div>
+
+
+
+    <div class="footer margin">
+                For more information, see <a href="https://jellyware.jp/kurage" target="_blank">jellyware.jp</a> and <a href="https://github.com/electricbaka/bluejelly" target="_blank">GitHub</a> !
+    </div>
+</div>
+<script>
+//--------------------------------------------------
+//Global変数
+//--------------------------------------------------
+//BlueJellyのインスタンス生成
+const ble = new BlueJelly();
+const ble2 = new BlueJelly();
+
+var value = "";
+var value2 = "";
+var ax=0;
+var ay=0;
+var az=0;
+var lx=0;
+var ly=0;
+var direction=0;
+var e_time = new Date();
+var bletime=0,ble2time=0,ble3time=0;
+var deviceaccel="";
+var getaccel=function(){
+  if( navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(getPosition);
+  }
+  deviceaccel=deviceaccel+(e_time.getTime()-ble3time)+","+ax+","+ay+","+az+","+direction+","+lx+","+ly+"\n"
+}
+
+var getPosition=function(){
+  lx=coords.latitude;
+  ly=coords.longitude;
+}
+//--------------------------------------------------
+//ロード時の処理
+//--------------------------------------------------
+window.onload = function () {
+  //UUIDの設定
+  ble.setUUID("UUID1", BlueJelly.MICROBIT_UART_SERVICE, BlueJelly.MICROBIT_TX_CHARACTERISTIC);
+  ble2.setUUID("UUID1", BlueJelly.MICROBIT_UART_SERVICE, BlueJelly.MICROBIT_TX_CHARACTERISTIC);
+}
+
+window.addEventListener("devicemotion", handleDeviceMotion);
+window.addEventListener("deviceorientation",handleDeviceDirection);
+//--------------------------------------------------
+//Read後の処理：得られたデータの表示など行う
+//--------------------------------------------------
+ble.onRead = function (data, uuid){
+  //フォーマットに従って値を取得
+
+  if (bletime==0) {bletime=e_time.getTime();}
+  for(let i = 0; i < data.byteLength; i++){
+    value = value + String.fromCharCode(data.getInt8(i));
+  }
+
+  document.getElementById('status').innerHTML = "read data  "+ value
+
+}
+
+ble2.onRead = function (data, uuid){
+  //フォーマットに従って値を取得
+  
+  if (ble2time==0) {ble2time=e_time.getTime();}
+  for(let i = 0; i < data.byteLength; i++){
+    value2 = value2 + String.fromCharCode(data.getInt8(i));
+  }
+
+  document.getElementById('status2').innerHTML = "read data  "+ value2
+}
+
+
+//-------------------------------------------------
+//ボタンが押された時のイベント登録
+//--------------------------------------------------
+document.getElementById('startNotifications').addEventListener('click', function() {
+    ble.startNotify('UUID1');
+    ble2.startNotify('UUID1');
+    ble3time=e_time.getTime();
+    setInterval(getaccel,50);
+});
+
+
+
+
+document.getElementById('stopNotifications').addEventListener('click', function() {
+      ble.stopNotify('UUID1');
+      ble2.stopNotify('UUID1');
+      clearInterval(getaccel);
+      const blob = new Blob([value],{type:"text/plain"});
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'jsdltest.csv';
+      link.click();
+});
+
+
+document.getElementById('saveDevice').addEventListener('click', function() {
+      deviceaccel=deviceaccel+(ble2time-bletime);
+      const blob = new Blob([deviceaccel],{type:"text/plain"});
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'jsdltest3.csv';
+      link.click();
+});
+
+document.getElementById('stopNotifications2').addEventListener('click', function() {
+//      ble2.stopNotify('UUID1');
+      const blob2 = new Blob([value2],{type:"text/plain"});
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob2);
+      link.download = 'jsdltest2.csv';
+      link.click();
+});
+
+//--------------------------------------------------
+//加速度,方位の取得
+//--------------------------------------------------
+
+function handleDeviceMotion(event) {
+  let t1 = event.accelerationIncludingGravity.x;
+  let t2 = event.accelerationIncludingGravity.y;
+  let t3 = event.accelerationIncludingGravity.z;
+  if (t1!==null){ax=t1;}
+  if (t2!==null){ay=t2;}
+  if (t3!==null){az=t3;}
+}
+
+
+function handleDeviceDirection(event) {
+  let t1=event.alpha;
+  if (t1!=null){direction=t1;}
+}
+
+
+</script>
+</body>
+</html>
