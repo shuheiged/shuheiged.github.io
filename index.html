@@ -60,23 +60,15 @@ var value2 = "";
 var ax=0;
 var ay=0;
 var az=0;
-var lx=0;
-var ly=0;
 var direction=0;
 var e_time = new Date();
 var bletime=0,ble2time=0,ble3time=0;
 var deviceaccel="";
 var getaccel=function(){
-  if( navigator.geolocation){
-    navigator.geolocation.getCurrentPosition(getPosition);
-  }
-  deviceaccel=deviceaccel+(e_time.getTime()-ble3time)+","+ax+","+ay+","+az+","+direction+","+lx+","+ly+"\n"
+  deviceaccel=deviceaccel+(e_time.getTime()-ble3time)+","+ax+","+ay+","+az+","+direction+"\n"
 }
 
-var getPosition=function(){
-  lx=coords.latitude;
-  ly=coords.longitude;
-}
+
 //--------------------------------------------------
 //ロード時の処理
 //--------------------------------------------------
