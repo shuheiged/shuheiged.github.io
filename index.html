@@ -88,8 +88,6 @@ window.addEventListener("deviceorientation",handleDeviceDirection);
 //--------------------------------------------------
 ble.onRead = function (data, uuid){
   //フォーマットに従って値を取得
-  datagetted=1;
-  getaccel=getaccel+"OK";
   if (bletime==0) {bletime=e_time.getTime();}
   for(let i = 0; i < data.byteLength; i++){
     value = value + String.fromCharCode(data.getInt8(i));
@@ -101,8 +99,6 @@ ble.onRead = function (data, uuid){
 
 ble2.onRead = function (data, uuid){
   //フォーマットに従って値を取得
-  datagetted=1
-  getaccel=getaccel+"OK";
   if (ble2time==0) {ble2time=e_time.getTime();}
   for(let i = 0; i < data.byteLength; i++){
     value2 = value2 + String.fromCharCode(data.getInt8(i));
