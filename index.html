@@ -128,7 +128,7 @@ document.getElementById('stopNotifications').addEventListener('click', function(
       const blob = new Blob([value],{type:"text/plain"});
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = 'jsdltest.csv';
+      link.download = 'stairup_chest.csv';
       link.click();
 });
 
@@ -147,7 +147,7 @@ document.getElementById('stopNotifications2').addEventListener('click', function
       const blob2 = new Blob([value2],{type:"text/plain"});
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob2);
-      link.download = 'jsdltest2.csv';
+      link.download = 'stairup_hand.csv';
       link.click();
 });
 
