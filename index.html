@@ -128,7 +128,7 @@ document.getElementById('stopNotifications').addEventListener('click', function(
       const blob = new Blob([value],{type:"text/plain"});
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = 'walk_pocket.csv';
+      link.download = 'elevator_pocket.csv';
       link.click();
 });
 
@@ -147,7 +147,7 @@ document.getElementById('stopNotifications2').addEventListener('click', function
       const blob2 = new Blob([value2],{type:"text/plain"});
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob2);
-      link.download = 'walk_hand.csv';
+      link.download = 'elevator_hand.csv';
       link.click();
 });
 
