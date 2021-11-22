@@ -100,7 +100,7 @@ ble.onRead = function (data, uuid){
     value = value + String.fromCharCode(data.getInt8(i));
   }
 
-  document.getElementById('status').innerHTML = "read data "
+  document.getElementById('status').innerHTML = "read data  "+ value
 
 }
 
@@ -112,7 +112,7 @@ ble2.onRead = function (data, uuid){
     value2 = value2 + String.fromCharCode(data.getInt8(i));
   }
 
-  document.getElementById('status2').innerHTML = "read data "
+  document.getElementById('status2').innerHTML = "read data  "+ value2
 }
 
 ble.onConnectGATT = function (uuid) {
@@ -180,8 +180,13 @@ document.getElementById('stopNotifications').addEventListener('click', function(
       link.href = URL.createObjectURL(blob);
       link.download = 'jsdltest.csv';
       link.click();
+      const blob2 = new Blob([value2],{type:"text/plain"});
+      const link2 = document.createElement('a');
+      link2.href = URL.createObjectURL(blob2);
+      link2.download = 'jsdltest2.csv';
+      link2.click();
       value="";
-
+      value2="";
 });
 
 
@@ -195,12 +200,7 @@ document.getElementById('saveDevice').addEventListener('click', function() {
 });
 
 document.getElementById('stopNotifications2').addEventListener('click', function() {
-      const blob2 = new Blob([value2],{type:"text/plain"});
-      const link2 = document.createElement('a');
-      link2.href = URL.createObjectURL(blob2);
-      link2.download = 'jsdltest2.csv';
-      link2.click();
-      value2="";
+//      ble2.stopNotify('UUID1');
 
 });
 
