@@ -53,8 +53,11 @@ Copyright 2017-2020 JellyWare Inc. All Rights Reserved.
 //--------------------------------------------------
 //BlueJellyのインスタンス生成
 const ble = new BlueJelly();
+const blew = new BlueJelly();
 const ble2 = new BlueJelly();
+const blew2 = new BlueJelly();
 
+var startflag=0;
 var value = "";
 var value2 = "";
 var ax=0;
@@ -64,21 +67,24 @@ var direction=0;
 var e_time = new Date();
 var bletime=0,ble2time=0,ble3time=0;
 var deviceaccel="";
-var datagetted=0;
 var getaccel=function(){
-  if (deviceaccel.indexOf('OK')==-1){
-    deviceaccel=deviceaccel+(e_time.getTime()-ble3time)+","+ax+","+ay+","+az+","+direction+"\n"
-  }
+  
+  deviceaccel=deviceaccel+(e_time.getTime()-ble3time)+","+ax+","+ay+","+az+","+direction+"\n"
 }
 
-
+var getPosition=function(){
+  lx=coords.latitude;
+  ly=coords.longitude;
+}
 //--------------------------------------------------
 //ロード時の処理
 //--------------------------------------------------
 window.onload = function () {
   //UUIDの設定
   ble.setUUID("UUID1", BlueJelly.MICROBIT_UART_SERVICE, BlueJelly.MICROBIT_TX_CHARACTERISTIC);
+  blew.setUUID("UUID1", BlueJelly.MICROBIT_UART_SERVICE, BlueJelly.MICROBIT_RX_CHARACTERISTIC);
   ble2.setUUID("UUID1", BlueJelly.MICROBIT_UART_SERVICE, BlueJelly.MICROBIT_TX_CHARACTERISTIC);
+  blew2.setUUID("UUID1", BlueJelly.MICROBIT_UART_SERVICE, BlueJelly.MICROBIT_RX_CHARACTERISTIC);
 }
 
 window.addEventListener("devicemotion", handleDeviceMotion);
@@ -88,6 +94,7 @@ window.addEventListener("deviceorientation",handleDeviceDirection);
 //--------------------------------------------------
 ble.onRead = function (data, uuid){
   //フォーマットに従って値を取得
+
   if (bletime==0) {bletime=e_time.getTime();}
   for(let i = 0; i < data.byteLength; i++){
     value = value + String.fromCharCode(data.getInt8(i));
@@ -99,6 +106,7 @@ ble.onRead = function (data, uuid){
 
 ble2.onRead = function (data, uuid){
   //フォーマットに従って値を取得
+  
   if (ble2time==0) {ble2time=e_time.getTime();}
   for(let i = 0; i < data.byteLength; i++){
     value2 = value2 + String.fromCharCode(data.getInt8(i));
@@ -107,15 +115,48 @@ ble2.onRead = function (data, uuid){
   document.getElementById('status2').innerHTML = "read data  "+ value2
 }
 
+ble.onConnectGATT = function (uuid) {
+  startflag=startflag^1;
+}
+ble2.onConnectGATT = function (uuid) {
+  startflag=startflag^2;
+}
+blew.onConnectGATT = function (uuid) {
+  startflag=startflag^4;
+}
+blew2.onConnectGATT = function (uuid) {
+  startflag=startflag^8;
+}
 
 //-------------------------------------------------
 //ボタンが押された時のイベント登録
 //--------------------------------------------------
 document.getElementById('startNotifications').addEventListener('click', function() {
-    ble.startNotify('UUID1');
-    ble2.startNotify('UUID1');
-    ble3time=e_time.getTime();
-    setInterval(getaccel,50);
+    ble.scan("UUID1");
+    blew.scan("UUID1");
+    ble2.scan("UUID1");
+    blew2.scan("UUID1");
+    ble.connectGATT("UUID1");
+    blew.connectGATT("UUID1");
+    ble2.connectGATT("UUID1");
+    blew2.connectGATT("UUID1");
+
+
+    console.log(startflag);
+    if (startflag==15){
+        ble.startNotify('UUID1');
+        ble2.startNotify('UUID1');
+        //フォーマットに従って値を変換
+        const textEncoder = new TextEncoder();
+        const text_data = "OK";
+        const text_data_encoded = textEncoder.encode(text_data + '\n');
+        
+        //write
+        blew.write('UUID1', text_data_encoded);
+        blew2.write('UUID1', text_data_encoded);
+        ble3time=e_time.getTime();
+        setInterval(getaccel,50);
+    }
 });
 
 
@@ -124,12 +165,28 @@ document.getElementById('startNotifications').addEventListener('click', function
 document.getElementById('stopNotifications').addEventListener('click', function() {
       ble.stopNotify('UUID1');
       ble2.stopNotify('UUID1');
+      //フォーマットに従って値を変換
+      const textEncoder = new TextEncoder();
+      const text_data = "NG";
+      const text_data_encoded = textEncoder.encode(text_data + '\n');
+      
+      //write
+      blew.write('UUID1', text_data_encoded);
+      blew2.write('UUID1', text_data_encoded);
+
       clearInterval(getaccel);
       const blob = new Blob([value],{type:"text/plain"});
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = 'elevator_pocket.csv';
+      link.download = 'jsdltest.csv';
       link.click();
+      const blob2 = new Blob([value2],{type:"text/plain"});
+      const link2 = document.createElement('a');
+      link2.href = URL.createObjectURL(blob2);
+      link2.download = 'jsdltest2.csv';
+      link2.click();
+      value="";
+      value2="";
 });
 
 
@@ -144,11 +201,7 @@ document.getElementById('saveDevice').addEventListener('click', function() {
 
 document.getElementById('stopNotifications2').addEventListener('click', function() {
 //      ble2.stopNotify('UUID1');
-      const blob2 = new Blob([value2],{type:"text/plain"});
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob2);
-      link.download = 'elevator_hand.csv';
-      link.click();
+
 });
 
 //--------------------------------------------------
